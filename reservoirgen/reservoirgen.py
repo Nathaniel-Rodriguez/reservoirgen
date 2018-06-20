@@ -13,7 +13,7 @@ def reservoir_as_edge_list(reservoir, dtype1=None, dtype2=None):
     :param dtype2: type of returned weight array
     :return: Ex2 numpy array, E numpy array of weights
     """
-    pass  # TODO implement
+    raise NotImplementedError  # TODO implement
 
 
 def generate_weights_for_edge_list(graph, distribution, dtype=None):
@@ -132,7 +132,7 @@ def generate_adj_reservoir_from_nx_graph(graph, distribution, dtype=None):
         done to give the sum of incoming excitations if x is the state vector Nx1.
     """
 
-    pass  # TODO implement
+    raise NotImplementedError  # TODO implement
 
 
 if __name__ == "__main__":
