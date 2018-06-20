@@ -1,54 +1,36 @@
 import numpy as np
-from functools import partial
 
 
-class Distribution(np.random.RandomState):
-    """
-    A sub-class around random state that is specialized to a specific
-    distribution. The user can pick from the distribution methods available
-    to RandomState and provide arguments to it while leaving out any they
-    wish to specify at call time.
-
-    When called, the Distribution object will generate random values as a numpy
-    array.
-    """
-
-    def __init__(self, distribution, distribution_args, *args, **kwargs):
-        """
-        :param distribution: string of one of the methods available to RandomState
-        :param distribution_args: dictionary of argument/value pairs
-        :param args: any other RandomState initialization arguments
-        :param kwargs: any other RandomState keyword arguments
-        """
-        super().__init__(*args, **kwargs)
-        self.partial_distribution = partial(getattr(self, distribution),
-                                            **distribution_args)
-
-    def __call__(self, *args, **kwargs):
-        """
-        :param kwargs: Any positional or keyword arguments NOT provided at
-            initialization.
-        :return: numpy array of random values generated from the distribution.
-        """
-        return self.partial_distribution(*args, **kwargs)
-
-
-def generate_reservoir_from_edge_list(graph, distribution, sparse=False):
+def generate_reservoir_from_edge_list(graph, distribution, dtype=np.float32):
     """
     Generates a weighted reservoir from an unweighted network. The network
     can be expressed as an edge list
-    :param graph: a Ex2 numpy edge list
+    :param graph: a Ex2 numpy edge list. Indices are assumed to correspond to
+        neuron ids. Assumed edge list represents i->j connections given (i,j)
+        values. e.g. (graph[x][i], graph[x][j])
     :param distribution: a distribution that can be called with a shape parameter
         e.g.: random_values = distribution(shape)
-    :return:
+    :return: numpy square matrix of size NxN, where N = # of identified neurons
+        rows are predecessors of ith neuron, e.g. ith row is all of the neurons
+        connecting TO i. So the sum of values in the ith row is the in-strength
+        of i. This orientation is chosen so that the dot product: M * x can be
+        done to give the sum of incoming excitations if x is the state vector Nx1.
     """
 
 
 
-def generate_reservoir_from_matrix(graph, distribution, sparse=False):
 
+def generate_reservoir_from_adj_matrix(graph, distribution, dtype=np.float32):
+    """
+    Generates a weighted reservoir from an unweighted network. The network
+    can be expressed as an numpy matrix
+    :param graph: a matrix with head as first axis, tails as second axis.
+        e.g. graph[i,j] gives link from j->i
+    :param distribution:
+    :return:
+    """
 
-def generate_reservoir_from_nx_graph(graph, distribution, sparse=False):
+def generate_reservoir_from_nx_graph(graph, distribution, dtype=np.float32):
 
 
 if __name__ == "__main__":
