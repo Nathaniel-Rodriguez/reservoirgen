@@ -1,7 +1,11 @@
 import numpy as np
 
 
-def reservoir_as_edge_list(reservoir, dtype1=np.int, dtype2=np.float32):
+DEFAULT_INT = np.int64
+DEFAULT_FLOAT = np.float64
+
+
+def reservoir_as_edge_list(reservoir, dtype1=None, dtype2=None):
     """
     Converts a reservoir to an edge list Ex2 with (i,j) where i->j.
     :param reservoir: reservoir as adjacency matrix
@@ -12,7 +16,7 @@ def reservoir_as_edge_list(reservoir, dtype1=np.int, dtype2=np.float32):
     pass  # TODO implement
 
 
-def generate_weights_for_edge_list(graph, distribution, dtype=np.float32):
+def generate_weights_for_edge_list(graph, distribution, dtype=None):
     """
     Generates weights for edges in edge list
     :param graph: Ex2 numpy array
@@ -22,10 +26,39 @@ def generate_weights_for_edge_list(graph, distribution, dtype=np.float32):
     :return: an E numpy array of type dtype
     """
 
+    if dtype is None:
+        dtype = DEFAULT_FLOAT
+
     return distribution(size=len(graph)).astype(dtype)
 
 
-def generate_adj_reservoir_from_edge_list(graph, distribution, dtype=np.float32,
+def generate_reservoir_input_weights(num_inputs, reservoir_size, input_fraction,
+                                     distribution, dtype=None):
+    """
+    N=reservoir_size, K=num_inputs
+    Generates a NxK numpy array where only a fraction of the reservoir neurons
+    receive inputs.
+    :param num_inputs: number of input dimensions
+    :param reservoir_size: number of neurons in reservoir
+    :param input_fraction: fraction of neurons that receive input for each dimension
+    :param distribution: a distribution that can be called with a shape parameter
+        and with
+        e.g.: random_values = distribution(shape)
+    :return: a NxK
+    """
+
+    if dtype is None:
+        dtype = DEFAULT_FLOAT
+
+    input_array = np.zeros((reservoir_size, num_inputs), dtype=dtype)
+    chosen_indices = distribution.choice(np.product(input_array.shape),
+                                         int(reservoir_size * input_fraction))
+    chosen_indices.sort()
+    input_array.flat[chosen_indices] = distribution(size=len(chosen_indices))
+    return input_array
+
+
+def generate_adj_reservoir_from_edge_list(graph, distribution, dtype=None,
                                           N=None):
     """
     Generates a weighted reservoir from an unweighted network. The network
@@ -45,6 +78,9 @@ def generate_adj_reservoir_from_edge_list(graph, distribution, dtype=np.float32,
         done to give the sum of incoming excitations if x is the state vector Nx1.
     """
 
+    if dtype is None:
+        dtype = DEFAULT_FLOAT
+
     if N is None:
         N = graph.max()
 
@@ -55,7 +91,7 @@ def generate_adj_reservoir_from_edge_list(graph, distribution, dtype=np.float32,
     return reservoir
 
 
-def generate_adj_reservoir_from_adj_matrix(graph, distribution, dtype=np.float32):
+def generate_adj_reservoir_from_adj_matrix(graph, distribution, dtype=None):
     """
     Generates a weighted reservoir from an unweighted network. The network
     can be expressed as an numpy matrix
@@ -69,6 +105,9 @@ def generate_adj_reservoir_from_adj_matrix(graph, distribution, dtype=np.float32
         of i. This orientation is chosen so that the dot product: M * x can be
         done to give the sum of incoming excitations if x is the state vector Nx1.
     """
+
+    if dtype is None:
+        dtype = DEFAULT_FLOAT
 
     reservoir = np.zeros(graph.shape, dtype=dtype)
     nonzero_indices = np.nonzero(graph)
@@ -78,7 +117,7 @@ def generate_adj_reservoir_from_adj_matrix(graph, distribution, dtype=np.float32
     return reservoir
 
 
-def generate_adj_reservoir_from_nx_graph(graph, distribution, dtype=np.float32):
+def generate_adj_reservoir_from_nx_graph(graph, distribution, dtype=None):
     """
     Generates a weighted reservoir from an unweighted network. The network
     can be expressed as an numpy matrix
@@ -92,6 +131,7 @@ def generate_adj_reservoir_from_nx_graph(graph, distribution, dtype=np.float32):
         of i. This orientation is chosen so that the dot product: M * x can be
         done to give the sum of incoming excitations if x is the state vector Nx1.
     """
+
     pass  # TODO implement
 
 
