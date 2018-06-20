@@ -24,8 +24,8 @@ class Distribution(np.random.RandomState):
             distribution_args = {}
 
         super().__init__(*args, **kwargs)
-        self.partial_distribution_method = partial(getattr(self, distribution),
-                                                   **distribution_args)
+        self._partial_distribution_method = partial(getattr(self, distribution),
+                                                    **distribution_args)
 
     def __call__(self, *args, **kwargs):
         """
@@ -33,4 +33,14 @@ class Distribution(np.random.RandomState):
             initialization.
         :return: numpy array of random values generated from the distribution.
         """
-        return self.partial_distribution_method(*args, **kwargs)
+        return self._partial_distribution_method(*args, **kwargs)
+
+    def set_distribution(self, distribution, distribution_args=None):
+        """
+        Changes the call functionality by using a different distribution
+        :param distribution: string of one of the methods available to RandomState
+        :param distribution_args: dictionary of argument/value pairs. Default: None
+        """
+
+        self._partial_distribution_method = partial(getattr(self, distribution),
+                                                    **distribution_args)
