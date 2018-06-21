@@ -41,6 +41,8 @@ class Distribution(np.random.RandomState):
         :param distribution: string of one of the methods available to RandomState
         :param distribution_args: dictionary of argument/value pairs. Default: None
         """
+        if distribution_args is None:
+            distribution_args = {}
 
         self._partial_distribution_method = partial(getattr(self, distribution),
                                                     **distribution_args)
