@@ -33,7 +33,7 @@ def generate_weights_for_edge_list(graph, distribution, dtype=None):
 
 
 def generate_reservoir_input_weights(num_inputs, reservoir_size, input_fraction,
-                                     distribution, dtype=None):
+                                     distribution, dtype=None, by_dimension=True):
     """
     N=reservoir_size, K=num_inputs
     Generates a NxK numpy array where only a fraction of the reservoir neurons
@@ -44,15 +44,26 @@ def generate_reservoir_input_weights(num_inputs, reservoir_size, input_fraction,
     :param distribution: a distribution that can be called with a shape parameter
         and with
         e.g.: random_values = distribution(shape)
+    :param dtype: the dtype of the input array
+    :param by_dimension: whether input_fraction is per dimension or for all inputs.
+        If True, each input gets input_fraction of connections.
+        If False, all inputs share input_fraction. Possible that some inputs maybe
+        disconnected.
+        Default: True
     :return: a NxK
     """
+
+    if by_dimension:
+        num_weights = int(reservoir_size * input_fraction * num_inputs)
+    else:
+        num_weights = int(reservoir_size * input_fraction)
 
     if dtype is None:
         dtype = DEFAULT_FLOAT
 
     input_array = np.zeros((reservoir_size, num_inputs), dtype=dtype)
     chosen_indices = distribution.choice(np.product(input_array.shape),
-                                         int(reservoir_size * input_fraction))
+                                         num_weights)
     chosen_indices.sort()
     input_array.flat[chosen_indices] = distribution(size=len(chosen_indices))
     return input_array
@@ -85,7 +96,7 @@ def generate_adj_reservoir_from_edge_list(graph, distribution, dtype=None,
         N = graph.max()
 
     reservoir = np.zeros((N, N), dtype=dtype)
-    flat_indices = np.ravel_multi_index(graph.transpose(), (N, N))
+    flat_indices = np.ravel_multi_index(np.flip(graph.transpose(), 0), (N, N))
     reservoir.flat[flat_indices] = distribution(size=len(flat_indices))
 
     return reservoir
@@ -99,6 +110,7 @@ def generate_adj_reservoir_from_adj_matrix(graph, distribution, dtype=None):
         e.g. graph[i,j] gives link from j->i
     :param distribution: a distribution that can be called with a shape parameter
         e.g.: random_values = distribution(shape)
+    :param dtype: return type of array
     :return: numpy square matrix of size NxN, where N = # of identified neurons
         rows are predecessors of ith neuron, e.g. ith row is all of the neurons
         connecting TO i. So the sum of values in the ith row is the in-strength
@@ -125,6 +137,7 @@ def generate_adj_reservoir_from_nx_graph(graph, distribution, dtype=None):
         e.g. graph[i,j] gives link from j->i
     :param distribution: a distribution that can be called with a shape parameter
         e.g.: random_values = distribution(shape)
+    :param dtype: return type of array
     :return: numpy square matrix of size NxN, where N = # of identified neurons
         rows are predecessors of ith neuron, e.g. ith row is all of the neurons
         connecting TO i. So the sum of values in the ith row is the in-strength
